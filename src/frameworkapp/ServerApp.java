@@ -17,7 +17,7 @@ import java.io.IOException;
  *
  * @author alessandra
  */
-public class FrameworkApp {
+public class ServerApp {
 
     /**
      * @param args the command line arguments
