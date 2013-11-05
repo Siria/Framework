@@ -4,9 +4,8 @@
  */
 package frameworkapp;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.io.IOException;
+import java.net.*;
+import java.io.*;
 // import per implementare la Reflection
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -17,39 +16,65 @@ import java.lang.reflect.Method;
  *
  * @author alessandra
  */
-public class ServerApp {
+public class ServerApp extends Thread {
+
+    private static int port;
+    private ServerSocket serverSocket;
+
+    public ServerApp(int port) throws IOException {
+        serverSocket = new ServerSocket(port);
+        serverSocket.setSoTimeout(20000);
+    }
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException {
-        // TODO code application logic here
-
-        try {
-            final int PORT = 6677;//SET NEW CONSTANT VARIABLE: PORT
-            ServerSocket server = new ServerSocket(PORT); //SET PORT NUMBER
-            System.out.println("Waiting for clients...");//AT THE START PRINT THIS
-
-            while (true)//WHILE THE PROGRAM IS RUNNING
-            {
-                Socket s = server.accept();//ACCEPT SOCKETS(CLIENTS) TRYING TO CONNECT
-
-                System.out.println("Client connected from " + s.getLocalAddress().getHostName());	//	TELL THEM THAT THE CLIENT CONNECTED
-
-                Client chat = new Client(s);//CREATE A NEW CLIENT OBJECT
-                Thread t = new Thread(chat);//MAKE A NEW THREAD
-                t.start();//START THE THREAD
+    public void run() {
+        while (true) {
+            try {
+                System.out.println("Waiting for client on port "
+                        + serverSocket.getLocalPort() + "...");
+                Socket server = serverSocket.accept();
+                System.out.println("Just connected to "
+                        + server.getRemoteSocketAddress());
+                DataInputStream in =
+                        new DataInputStream(server.getInputStream());
+                System.out.println(in.readUTF());
+                DataOutputStream out =
+                        new DataOutputStream(server.getOutputStream());
+                out.writeUTF("Thank you for connecting to "
+                        + server.getLocalSocketAddress() + "\nGoodbye!");
+                server.close();
+            } catch (SocketTimeoutException s) {
+                System.out.println("Socket timed out!");
+                break;
+            } catch (IOException e) {
+                e.printStackTrace();
+                break;
             }
-        } catch (Exception e) {
-            System.out.println("An error occured.");//IF AN ERROR OCCURED THEN PRINT IT
+        }
+    }
+
+    public static void main(String[] args) {
+        port = 9000;
+        try {
+            Thread t = new ServerApp(port);
+            t.start();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
+
+
 // utilizzo Reflection
-        
+// Lo si fa per rendere manipolabile un oggetto pur non conoscendo
+// la classe
+// Stampe di prova
+
         // "frameworkapp.Item"
 
         try {
+            System.out.println("Iniziano le stampe di prova... ");
             // Ottengo il riferimento alla Classe di interesse
             Class c = Class.forName("frameworkapp.Item");
 
@@ -86,7 +111,7 @@ public class ServerApp {
                 System.out.println("Modificatore: " + modificatore);
 
                 // Visualizzo i Metodi
-                Method listaMetodi[] = c.getDeclaredMethods();   
+                Method listaMetodi[] = c.getDeclaredMethods();
                 for (int k = 0; k < listaMetodi.length; k++) {
                     Method currentMethod = listaMetodi[k];
 
@@ -124,15 +149,27 @@ public class ServerApp {
                     for (int j = 0; j < eccezioni.length; j++) {
                         System.out.println(eccezioni[j].getName());
                     }
+                    
+                    
                 }
             }
+            
+            
+            
         } catch (ClassNotFoundException cnfe) {
             System.out.println("Classe non trovata!");
         }
 
-
+    
+    // Dopo aver applicato la reflection si serializzano i contenuti
+    // in uno stream di byte in modo da inviarli tramite socket 
+        Item item = new Item("Marco", "studente");
+        Class i_class = item.getClass();
+        
+    // serializzo usando la classe Serializator.java
     }
+   
+    
+    
     
 }
-
-

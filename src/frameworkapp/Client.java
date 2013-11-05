@@ -8,46 +8,35 @@ package frameworkapp;
  *
  * @author alessandra
  */
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.Scanner;
+import java.io.*;
+import java.net.*;
+public class Client
+{
+    private static String serverName;
+   public static void main(String [] args)
+   {
+      String sName = "localhost";
+      int port = 9000;
+      try
+      {
+         System.out.println("Connecting to " + sName
+                             + " on port " + port);
+         Socket client = new Socket(sName, port);
+         System.out.println("Just connected to "
+                      + client.getRemoteSocketAddress());
+         OutputStream outToServer = client.getOutputStream();
+         DataOutputStream out =
+                       new DataOutputStream(outToServer);
 
-
-public class Client implements Runnable{
-
-	private Socket socket;//SOCKET INSTANCE VARIABLE
-	
-	public Client(Socket s)
-	{
-		socket = s;//INSTANTIATE THE SOCKET
-	}
-	
-	@Override
-	public void run() //(IMPLEMENTED FROM THE RUNNABLE INTERFACE)
-	{
-		try //HAVE TO HAVE THIS FOR THE in AND out VARIABLES
-		{
-			Scanner in = new Scanner(socket.getInputStream());//GET THE SOCKETS INPUT STREAM (THE STREAM THAT YOU WILL GET WHAT THEY TYPE FROM)
-			PrintWriter out = new PrintWriter(socket.getOutputStream());//GET THE SOCKETS OUTPUT STREAM (THE STREAM YOU WILL SEND INFORMATION TO THEM FROM)
-			
-			while (true)//WHILE THE PROGRAM IS RUNNING
-			{		
-				if (in.hasNext())
-				{
-					String input = in.nextLine();//IF THERE IS INPUT THEN MAKE A NEW VARIABLE input AND READ WHAT THEY TYPED
-					System.out.println("Client Said: " + input);//PRINT IT OUT TO THE SCREEN
-					out.println("You Said: " + input);//RESEND IT TO THE CLIENT
-					out.flush();//FLUSH THE STREAM
-				}
-			}
-		} 
-		catch (Exception e)
-		{
-			e.printStackTrace();//MOST LIKELY THERE WONT BE AN ERROR BUT ITS GOOD TO CATCH
-		}	
-	}
-
+         out.writeUTF("Hello from "
+                      + client.getLocalSocketAddress());
+         InputStream inFromServer = client.getInputStream();
+         DataInputStream in =
+                        new DataInputStream(inFromServer);
+         System.out.println("Server says " + in.readUTF());
+         client.close();
+      }catch(IOException e)
+      {
+      }
+   }
 }
-
-
-
