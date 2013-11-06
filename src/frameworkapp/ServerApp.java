@@ -11,6 +11,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -32,18 +34,28 @@ public class ServerApp extends Thread {
     public void run() {
         while (true) {
             try {
-                System.out.println("Waiting for client on port "
-                        + serverSocket.getLocalPort() + "...");
+                System.out.println("Waiting for client on port " + serverSocket.getLocalPort() + "...");
                 Socket server = serverSocket.accept();
-                System.out.println("Just connected to "
-                        + server.getRemoteSocketAddress());
-                DataInputStream in =
-                        new DataInputStream(server.getInputStream());
-                System.out.println(in.readUTF());
-                DataOutputStream out =
-                        new DataOutputStream(server.getOutputStream());
-                out.writeUTF("Thank you for connecting to "
-                        + server.getLocalSocketAddress() + "\nGoodbye!");
+                System.out.println("Just connected to " + server.getRemoteSocketAddress());
+                ObjectInputStream in = new ObjectInputStream(server.getInputStream());
+
+                // ricevo dati dal client
+                System.out.println("Ricevo dal client....");
+                Object obj = in.readObject();
+//                byte[] dati = new byte[1000];
+//                ByteArrayInputStream byte_stream = new ByteArrayInputStream(dati);
+//                ObjectInputStream ois = new ObjectInputStream(byte_stream); //byte_stream);
+//                Object o = ois.readObject();
+//                //Class c = (Class) ois.readObject();
+//                Class c = ois.readObject().getClass();
+//                ois.close();
+//                System.out.println(o.toString());
+                System.out.println(obj.toString());
+                System.out.println(obj.getClass().getCanonicalName());
+                System.out.println("Fine ricezione...");
+
+                DataOutputStream out = new DataOutputStream(server.getOutputStream());
+                out.writeUTF("Thank you for connecting to " + server.getLocalSocketAddress() + "\nGoodbye!");
                 server.close();
             } catch (SocketTimeoutException s) {
                 System.out.println("Socket timed out!");
@@ -51,11 +63,15 @@ public class ServerApp extends Thread {
             } catch (IOException e) {
                 e.printStackTrace();
                 break;
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(ServerApp.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+
+
         port = 9000;
         try {
             Thread t = new ServerApp(port);
@@ -63,16 +79,12 @@ public class ServerApp extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-
-// utilizzo Reflection
-// Lo si fa per rendere manipolabile un oggetto pur non conoscendo
-// la classe
-// Stampe di prova
-
+        // utilizzo Reflection
+        // Lo si fa per rendere manipolabile un oggetto pur non conoscendo
+        // la classe
+        // Stampe di prova
         // "frameworkapp.Item"
-
+        /*
         try {
             System.out.println("Iniziano le stampe di prova... ");
             // Ottengo il riferimento alla Classe di interesse
@@ -149,27 +161,19 @@ public class ServerApp extends Thread {
                     for (int j = 0; j < eccezioni.length; j++) {
                         System.out.println(eccezioni[j].getName());
                     }
-                    
-                    
+
+
                 }
             }
-            
-            
-            
+
+
+
         } catch (ClassNotFoundException cnfe) {
             System.out.println("Classe non trovata!");
         }
+*/
 
-    
-    // Dopo aver applicato la reflection si serializzano i contenuti
-    // in uno stream di byte in modo da inviarli tramite socket 
-        Item item = new Item("Marco", "studente");
-        Class i_class = item.getClass();
-        
-    // serializzo usando la classe Serializator.java
+
+
     }
-   
-    
-    
-    
 }
